@@ -10,7 +10,7 @@ CREATE TYPE role AS ENUM ('donor', 'blood_bank_staff', 'hospital_staff');
 CREATE TYPE blood_type AS ENUM ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-');
 CREATE TYPE gender AS ENUM ('Male', 'Female');
 CREATE TYPE priority AS ENUM ('Emergency', 'Urgent', 'Routine');
-CREATE TYPE request_status AS ENUM ('Pending', 'Reviewing', 'Approved', 'Rejected', 'Fulfilled', 'Cancelled');
+CREATE TYPE request_status AS ENUM ('Pending', 'Pending_Crossmatch', 'Escalated_To_Donors', 'Allocated', 'Issued', 'Fulfilled', 'Partially_Fulfilled', 'Cancelled_By_Hospital', 'Rejected_By_Bloodbank');
 CREATE TYPE bag_status AS ENUM ('Pending Testing', 'Available', 'Reserved', 'Crossmatched', 'Issued', 'Used', 'Discarded');
 
 -- Session storage table (required for authentication)
@@ -143,15 +143,13 @@ CREATE TABLE blood_requests (
 -- Blood request items table (for tracking individual bag assignments)
 CREATE TABLE blood_request_items (
     id SERIAL PRIMARY KEY,
-    request_id INTEGER NOT NULL REFERENCES blood_requests(id),
+    request_id INTEGER NOT NULL REFERENCES blood_requests(id) ON DELETE CASCADE,
     blood_bag_id VARCHAR REFERENCES blood_bags(id),
-    status VARCHAR(50) DEFAULT 'Pending',
-    allocated_at TIMESTAMP,
-    crossmatch_result VARCHAR(50),
-    crossmatch_date TIMESTAMP,
-    dispatched_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status request_status NOT NULL DEFAULT 'Pending',
+    cross_match_date TIMESTAMP,
+    cross_match_result VARCHAR(50),
+    issued_date TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert sample data for blood banks
@@ -217,4 +215,5 @@ CREATE TRIGGER update_blood_request_items_updated_at BEFORE UPDATE ON blood_requ
 -- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO your_database_user;
 
 -- Database setup complete
+-- Updated: July 05, 2025 - Added comprehensive workflow status enums and improved schema
 -- The database is now ready for the Lifeline Blood Donation Management System
