@@ -624,5 +624,5 @@ class MemoryStorage implements IStorage {
   }
 }
 
-// Use memory storage for development until database is properly configured
-export const storage = new MemoryStorage();
+// Use database storage now that PostgreSQL is configured
+export const storage = new DatabaseStorage();
