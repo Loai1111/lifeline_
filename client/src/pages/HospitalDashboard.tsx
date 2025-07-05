@@ -19,42 +19,15 @@ function HospitalDashboardContent() {
   
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/stats/requests'],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to load statistics",
-        variant: "destructive",
-      });
-    },
   });
 
   const { data: recentRequests, isLoading: requestsLoading } = useQuery({
     queryKey: ['/api/blood-requests'],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
+
+  // Type-safe data access
+  const statsData = (stats && typeof stats === 'object') ? stats as { pending: number; approved: number; total: number } : { pending: 0, approved: 0, total: 0 };
+  const requestsData = Array.isArray(recentRequests) ? recentRequests : [];
 
   if (statsLoading || requestsLoading) {
     return (
@@ -80,7 +53,7 @@ function HospitalDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending Requests</p>
-                <p className="text-2xl font-bold text-orange-600">{stats?.pending || 0}</p>
+                <p className="text-2xl font-bold text-orange-600">{statsData?.pending || 0}</p>
               </div>
               <div className="bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center">
                 <Clock className="h-6 w-6 text-orange-600" />
@@ -94,7 +67,7 @@ function HospitalDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Approved Today</p>
-                <p className="text-2xl font-bold text-green-600">{stats?.approved || 0}</p>
+                <p className="text-2xl font-bold text-green-600">{statsData?.approved || 0}</p>
               </div>
               <div className="bg-green-100 rounded-full w-12 h-12 flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -122,7 +95,7 @@ function HospitalDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Requests</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{statsData?.total || 0}</p>
               </div>
               <div className="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-gray-600" />
@@ -138,7 +111,7 @@ function HospitalDashboardContent() {
           <CardTitle>Recent Requests</CardTitle>
         </CardHeader>
         <CardContent>
-          <RequestsTable requests={recentRequests?.slice(0, 5) || []} />
+          <RequestsTable requests={requestsData.slice(0, 5)} />
         </CardContent>
       </Card>
     </div>
@@ -180,10 +153,9 @@ export default function HospitalDashboard() {
     <Layout sidebar={<HospitalSidebar />}>
       <Switch>
         <Route path="/" component={HospitalDashboardContent} />
-        <Route path="/hospital" component={HospitalDashboardContent} />
-        <Route path="/hospital/request" component={BloodRequestForm} />
-        <Route path="/hospital/requests" component={() => <RequestsTable />} />
-        <Route path="/hospital/inventory" component={() => <InventoryGrid />} />
+        <Route path="/request" component={BloodRequestForm} />
+        <Route path="/requests" component={() => <RequestsTable />} />
+        <Route path="/inventory" component={() => <InventoryGrid />} />
       </Switch>
     </Layout>
   );

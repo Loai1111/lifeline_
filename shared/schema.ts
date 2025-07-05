@@ -39,6 +39,7 @@ export const requestStatusEnum = pgEnum("request_status", [
   "Allocated", 
   "Issued", 
   "Fulfilled", 
+  "Partially_Fulfilled",
   "Cancelled_By_Hospital", 
   "Rejected_By_Bloodbank"
 ]);

@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Inbox, Package, Users, UserCheck } from "lucide-react";
+import { BarChart3, Inbox, Package, Users, UserCheck, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function BloodBankSidebar() {
@@ -21,6 +21,7 @@ export default function BloodBankSidebar() {
       badge: requestStats?.pending || 0
     },
     { path: "/blood-bank/inventory", label: "Blood Inventory", icon: Package },
+    { path: "/blood-bank/add-blood-bag", label: "Add Blood Bag", icon: Plus },
     { path: "/blood-bank/donors", label: "Donors", icon: Users },
     { path: "/blood-bank/screening", label: "Health Screening", icon: UserCheck },
   ];

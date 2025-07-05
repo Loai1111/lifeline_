@@ -9,6 +9,7 @@ import BloodRequestWorkflow from "@/components/BloodRequestWorkflow";
 import InventoryGrid from "@/components/InventoryGrid";
 import RequestsTable from "@/components/RequestsTable";
 import RoleSwitcher from "@/components/RoleSwitcher";
+import BloodBagForm from "@/components/BloodBagForm";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Clock, AlertTriangle, Users } from "lucide-react";
@@ -200,9 +201,9 @@ export default function BloodBankDashboard() {
     <Layout sidebar={<BloodBankSidebar />}>
       <Switch>
         <Route path="/" component={BloodBankDashboardContent} />
-        <Route path="/blood-bank" component={BloodBankDashboardContent} />
-        <Route path="/blood-bank/requests" component={() => <RequestsTable showActions={true} />} />
-        <Route path="/blood-bank/inventory" component={() => <InventoryGrid showActions={true} />} />
+        <Route path="/requests" component={() => <RequestsTable showActions={true} />} />
+        <Route path="/inventory" component={() => <InventoryGrid showActions={true} />} />
+        <Route path="/add-blood-bag" component={() => <BloodBagForm />} />
       </Switch>
     </Layout>
   );

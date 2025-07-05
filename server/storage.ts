@@ -112,18 +112,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBloodRequests(hospitalId?: number): Promise<BloodRequest[]> {
+    // Priority-based ordering: Emergency > Urgent > Routine, then by creation time (earliest first)
+    const orderByClauses = [
+      sql`CASE 
+        WHEN ${bloodRequests.priority} = 'Emergency' THEN 1
+        WHEN ${bloodRequests.priority} = 'Urgent' THEN 2  
+        WHEN ${bloodRequests.priority} = 'Routine' THEN 3
+        ELSE 4
+      END`,
+      bloodRequests.createdAt // Then by timestamp (earliest first)
+    ];
+
     if (hospitalId) {
       return await db
         .select()
         .from(bloodRequests)
         .where(eq(bloodRequests.hospitalId, hospitalId))
-        .orderBy(desc(bloodRequests.createdAt));
+        .orderBy(...orderByClauses);
     }
     
     return await db
       .select()
       .from(bloodRequests)
-      .orderBy(desc(bloodRequests.createdAt));
+      .orderBy(...orderByClauses);
   }
 
   async getBloodRequestById(id: number): Promise<BloodRequest | undefined> {
@@ -321,12 +332,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async findSuitableBags(bloodType: string, count: number): Promise<BloodBag[]> {
+    // FEFO (First Expired, First Out) - sort by expiry date ascending
     const bags = await db.select()
       .from(bloodBags)
       .where(and(
         eq(bloodBags.bloodType, bloodType as any),
         eq(bloodBags.status, 'Available')
       ))
+      .orderBy(bloodBags.expiryDate) // FEFO - earliest expiry first
       .limit(count);
     
     return bags;

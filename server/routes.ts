@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Workflow management routes
+  // Workflow management routes with partial fulfillment
   app.post('/api/blood-requests/:id/process', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -396,29 +396,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Request is not in pending status" });
       }
       
-      // Find suitable bags for this request
+      // Find suitable bags for this request (FEFO implemented)
       const suitableBags = await storage.findSuitableBags(bloodRequest.bloodType, bloodRequest.unitsRequested);
       
-      if (suitableBags.length >= bloodRequest.unitsRequested) {
-        // Move to Pending_Crossmatch status
+      if (suitableBags.length === 0) {
+        // No inventory available - escalate to donors
+        await storage.updateBloodRequestStatus(requestId, 'Escalated_To_Donors');
+        res.json({ 
+          message: "No inventory available - escalated to donors", 
+          status: "Escalated_To_Donors",
+          fulfilledUnits: 0,
+          remainingUnits: bloodRequest.unitsRequested
+        });
+      } else if (suitableBags.length >= bloodRequest.unitsRequested) {
+        // Full fulfillment possible
         await storage.updateBloodRequestStatus(requestId, 'Pending_Crossmatch');
         
-        // Reserve the bags
+        // Reserve the bags (atomic transaction)
         for (let i = 0; i < bloodRequest.unitsRequested; i++) {
           await storage.allocateBagToRequest(requestId, suitableBags[i].id);
         }
         
         res.json({ 
-          message: "Request moved to crossmatch phase", 
+          message: "Request fully allocated - moved to crossmatch phase", 
           status: "Pending_Crossmatch",
-          allocatedBags: suitableBags.slice(0, bloodRequest.unitsRequested)
+          allocatedBags: suitableBags.slice(0, bloodRequest.unitsRequested),
+          fulfilledUnits: bloodRequest.unitsRequested,
+          remainingUnits: 0
         });
       } else {
-        // Not enough stock, escalate to donors
-        await storage.updateBloodRequestStatus(requestId, 'Escalated_To_Donors');
+        // Partial fulfillment - allocate what's available and escalate remainder
+        await storage.updateBloodRequestStatus(requestId, 'Partially_Fulfilled');
+        
+        // Reserve available bags
+        for (let i = 0; i < suitableBags.length; i++) {
+          await storage.allocateBagToRequest(requestId, suitableBags[i].id);
+        }
+        
+        const remainingUnits = bloodRequest.unitsRequested - suitableBags.length;
+        
         res.json({ 
-          message: "Insufficient stock - escalated to donors", 
-          status: "Escalated_To_Donors" 
+          message: `Partially fulfilled: ${suitableBags.length} units allocated, ${remainingUnits} units escalated to donors`, 
+          status: "Partially_Fulfilled",
+          allocatedBags: suitableBags,
+          fulfilledUnits: suitableBags.length,
+          remainingUnits: remainingUnits
         });
       }
     } catch (error) {
