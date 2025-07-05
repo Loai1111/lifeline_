@@ -8,6 +8,11 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
+// Import memorystore using createRequire for CommonJS compatibility
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const MemoryStore = require('memorystore');
+
 if (!process.env.REPLIT_DOMAINS) {
   console.warn("Environment variable REPLIT_DOMAINS not provided. Using development default.");
   process.env.REPLIT_DOMAINS = "localhost:5000,127.0.0.1:5000";
@@ -39,13 +44,10 @@ const getOidcConfig = memoize(
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   
-  // Use PostgreSQL store for sessions
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
+  // Use memory store for development since database connection has issues
+  const sessionStore = new (MemoryStore(session))({
+    checkPeriod: 86400000, // prune expired entries every 24h
     ttl: sessionTtl,
-    tableName: "sessions",
   });
   
   console.log("[SESSION DEBUG] Creating session with config:", {

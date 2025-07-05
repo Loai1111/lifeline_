@@ -7,31 +7,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 
-async function initializeDatabase() {
-  try {
-    // Create sessions table for Replit Auth if it doesn't exist
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS sessions (
-        sid VARCHAR PRIMARY KEY,
-        sess JSONB NOT NULL,
-        expire TIMESTAMPTZ NOT NULL
-      );
-    `);
-    
-    await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions (expire);
-    `);
-    
-    console.log("Database tables initialized successfully");
-  } catch (error) {
-    console.error("Database initialization error:", error);
-    // Don't throw - let the app continue, tables might already exist
-  }
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize database tables
-  await initializeDatabase();
   
   // Auth middleware
   await setupAuth(app);

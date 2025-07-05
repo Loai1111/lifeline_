@@ -319,7 +319,7 @@ export class DatabaseStorage implements IStorage {
       total: 0,
     };
     
-    results.forEach(result => {
+    results.forEach((result: any) => {
       stats.total += result.count;
       if (result.status === "Pending") {
         stats.pending = result.count;
@@ -624,5 +624,5 @@ class MemoryStorage implements IStorage {
   }
 }
 
-// Use database storage now that we have proper credentials
-export const storage = new DatabaseStorage();
+// Use memory storage for development until database is properly configured
+export const storage = new MemoryStorage();
