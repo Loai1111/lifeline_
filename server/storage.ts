@@ -624,7 +624,5 @@ class MemoryStorage implements IStorage {
   }
 }
 
-// Use development storage if database is not available
-export const storage = process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL?.includes('postgresql://') 
-  ? new MemoryStorage() 
-  : new DatabaseStorage();
+// Use database storage now that we have proper credentials
+export const storage = new DatabaseStorage();
