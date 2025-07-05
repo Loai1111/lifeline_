@@ -13,10 +13,16 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const MemoryStore = require('memorystore');
 
-if (!process.env.REPLIT_DOMAINS) {
-  console.warn("Environment variable REPLIT_DOMAINS not provided. Using development default.");
-  process.env.REPLIT_DOMAINS = "localhost:5000,127.0.0.1:5000";
-}
+// Determine the callback URL based on the environment
+const getCallbackUrl = () => {
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    // Production on Replit
+    return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co/api/callback`;
+  } else {
+    // Local development
+    return "http://localhost:5000/api/callback";
+  }
+};
 
 const getOidcConfig = memoize(
   async () => {
@@ -146,52 +152,37 @@ export async function setupAuth(app: Express) {
     }
   };
 
-  // Configure strategies for both Replit domains and localhost
-  const domains = process.env.REPLIT_DOMAINS!.split(",");
-  
-  // Add localhost variants for development
-  domains.push("localhost:5000");
-  domains.push("localhost");
-  
-  for (const domain of domains) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-    console.log(`[AUTH DEBUG] Registered strategy for domain: ${domain}`);
-  }
+  const callbackURL = getCallbackUrl();
+  console.log(`[AUTH DEBUG] Using callback URL: ${callbackURL}`);
+
+  const strategy = new Strategy(
+    {
+      name: 'replitauth',
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL,
+    },
+    verify,
+  );
+  passport.use(strategy);
+  console.log(`[AUTH DEBUG] Registered 'replitauth' strategy.`);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    console.log("[AUTH DEBUG] Login attempt:", {
-      hostname: req.hostname,
-      host: req.get('host'),
-      configuredDomains: process.env.REPLIT_DOMAINS?.split(","),
-      strategyName: `replitauth:${req.hostname}`
-    });
+    console.log("[AUTH DEBUG] Login attempt with 'replitauth' strategy");
     
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    passport.authenticate('replitauth', {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    console.log("[AUTH DEBUG] Callback route hit:", {
-      hostname: req.hostname,
-      sessionID: req.sessionID,
-      query: req.query
-    });
+    console.log("[AUTH DEBUG] Callback route hit with 'replitauth' strategy");
     
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    passport.authenticate('replitauth', {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
