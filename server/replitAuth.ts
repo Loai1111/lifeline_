@@ -29,12 +29,12 @@ const getOidcConfig = memoize(
     try {
       console.log("[AUTH DEBUG] Discovering OIDC config with:", {
         issuerUrl: process.env.ISSUER_URL ?? "https://replit.com/oidc",
-        clientId: process.env.REPL_ID
+        clientId: process.env.REPLIT_CLIENT_ID
       });
       
       const config = await client.discovery(
         new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-        process.env.REPL_ID!
+        process.env.REPLIT_CLIENT_ID!
       );
       
       console.log("[AUTH DEBUG] OIDC config discovered successfully");
@@ -192,7 +192,7 @@ export async function setupAuth(app: Express) {
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
+          client_id: process.env.REPLIT_CLIENT_ID!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );
