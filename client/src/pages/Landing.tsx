@@ -12,11 +12,11 @@ export default function Landing() {
           </div>
           <h1 className="text-5xl font-bold text-white mb-4">Lifeline</h1>
           <p className="text-xl text-blue-100 mb-8">
-            Connecting lives through blood donation management
+            Healthcare Professional Portal
           </p>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            A comprehensive platform that connects hospitals, blood banks, and donors 
-            to ensure life-saving blood is always available when needed.
+            A comprehensive web portal for hospitals and blood banks to manage 
+            blood requests, inventory, and coordination efficiently.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -30,7 +30,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <Card className="border-0 shadow-xl bg-white/10 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
@@ -59,19 +59,7 @@ export default function Landing() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl bg-white/10 backdrop-blur-sm">
-            <CardContent className="p-8 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                For Donors
-              </h3>
-              <p className="text-blue-100">
-                Track donations, check eligibility, and respond to urgent needs
-              </p>
-            </CardContent>
-          </Card>
+
         </div>
 
         <div className="mt-16 text-center">

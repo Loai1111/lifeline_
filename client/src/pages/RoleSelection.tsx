@@ -43,12 +43,15 @@ export default function RoleSelection() {
             <Heart className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-5xl font-bold text-white mb-4">Welcome to Lifeline</h1>
-          <p className="text-xl text-blue-100 mb-8">
-            Please select your role to continue
+          <p className="text-xl text-blue-100 mb-4">
+            Web Portal for Healthcare Professionals
+          </p>
+          <p className="text-blue-100 mb-8">
+            Please select your role to access your dashboard
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <Card className="border-0 shadow-xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer">
             <CardContent className="p-8 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
@@ -95,28 +98,7 @@ export default function RoleSelection() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer">
-            <CardContent className="p-8 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                <Heart className="h-6 w-6 text-green-600" />
-              </div>
-              <CardHeader className="p-0">
-                <CardTitle className="text-xl font-semibold text-white mb-3">
-                  Donor
-                </CardTitle>
-              </CardHeader>
-              <p className="text-blue-100 mb-6">
-                Track donations, check eligibility, and respond to urgent needs
-              </p>
-              <Button
-                onClick={() => handleRoleSelect("donor")}
-                disabled={updateRoleMutation.isPending}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                {updateRoleMutation.isPending && selectedRole === "donor" ? "Selecting..." : "Select Role"}
-              </Button>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>

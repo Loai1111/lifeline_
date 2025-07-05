@@ -36,9 +36,9 @@ function Router() {
               return <HospitalDashboard />;
             } else if (user?.role === 'blood_bank_staff') {
               return <BloodBankDashboard />;
-            } else if (user?.role === 'donor') {
-              return <DonorDashboard />;
             } else {
+              // For donors or users without a role, show role selection
+              // Since donors are mobile-only, web users need to select hospital/blood bank
               return <RoleSelection />;
             }
           }} />
