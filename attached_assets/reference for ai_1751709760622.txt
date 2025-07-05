@@ -1,0 +1,261 @@
+﻿criterias: 
+------------------------------------------
+Blood selection criterias: 
+
+things that make a blood better than another blood even though all are eligible
+------------------------------------------
+- CMV-negative blood is critical for immunocompromised patients (e.g., newborns, transplant recipients).
+- Frequent donors with stable ferritin levels are preferred to avoid iron depletion.
+- Leukoreduction (WBC Filtered): Reduces febrile reactions and CMV transmission → Preferred for cancer patients.
+- Irradiated Blood: Prevents graft-versus-host disease (GVHD) in immunocompromised recipients.
+- Regular Donors: Known health history → Lower risk of undetected infections.
+- Rare Phenotypes: Kell-, Duffy-, Jk(a-) → Needed for patients with multiple antibodies.
+- Autologous Donors: Patients donating for their own future surgeries bypass compatibility issues.
+- Chronic Patients (e.g., thalassemia): Phenotype-matched RBCs reduce alloimmunization.
+- Trauma/ER: O-negative is immediately released.
+- Pathogen-Reduced Blood: Proactively treated to inactivate a broad range of pathogens → Adds a layer of safety beyond standard infection testing.
+- HbS-Negative Blood: Does not contain the sickle cell trait → Essential for transfusing patients with Sickle Cell Disease.
+_____________________________________________________________
+
+Criterias for selecting blood (applies to blood bag and blood donors too)
+• The exclusiveness of donation to a blood type (if this type can donate to a blood type that does not accept from the other blood types other than it, then prioritise other blood types. if this blood type can donate to only these 1 or 2 types then prioritise it, because we cannot make use of them differently. Very significant criteria)
+• 
+
+For choosing blood bag
+Expiry date(typically prefer soon-to-expire bags)
+Number of Available bags of this type(also how many other blood types)
+
+Choosing donors
+Last tested
+
+
+
+Gemini enhanced answer:
+
+Part 1: Patient-Centric Preferences
+These preferences prioritize the best outcome for the individual recipient, focusing on long-term health and specific medical needs.
+1. Preference for Identical Match (Highest Priority): For any given patient, the strongest preference is to use blood of their exact ABO and Rh type.
+o Reasoning: This minimizes the recipient's exposure to foreign minor antigens, reducing the long-term risk of developing antibodies (alloimmunization). This is especially critical for patients who may require multiple transfusions over their lifetime.
+2. Preference for Rh-Negative Conservation: An Rh-positive recipient who can safely receive both Rh-positive and Rh-negative blood should preferentially be given Rh-positive blood.
+o Reasoning: This conserves the scarcer Rh-negative supply for Rh-negative patients, who have no other option.
+3. Preference for Specialized Products: If a patient's clinical needs require a specific type of blood product, that preference should be paramount.
+o Examples:
+• CMV-Negative: A strong preference for CMV-negative blood for newborns and immunocompromised patients.
+• Irradiated/Leukoreduced: A requirement for these products must be met with a unit that has undergone the specific processing.
+• Extended Phenotype Matching: For patients with chronic conditions (e.g., sickle cell), there is a high preference for blood that is matched for multiple minor antigens beyond just ABO/Rh.
+Part 2: Inventory-Centric Preferences
+These preferences focus on maintaining the health, flexibility, and efficiency of the entire blood supply.
+1. Rule of Opportunity Cost (Core Logic): This is the central rule for optimizing inventory. When a patient can receive blood from multiple compatible types, the system should prefer the option that leaves the overall inventory with the most flexibility for future patients.
+o Principle: The best choice is the one with the lowest "opportunity cost." Using a highly versatile blood type (like O-) on a patient who could accept a more "specialized" type (like A+) is a high opportunity cost, as the O- blood is now unavailable for a future patient who might have no other options.
+o Evaluation Logic:
+1. For a patient, identify all available, compatible blood types in the inventory.
+2. For each compatible type, determine its Donation Versatility Score. This score quantifies how many different recipient blood types it can serve. (e.g., O- has the highest score, A+ has a lower score).
+3. Prioritize using the blood type with the lowest Donation Versatility Score. This saves the more versatile "generalist" blood for situations where it is essential.
+2. Rule of First-Expiry, First-Out (FEFO): When all other factors are equal, always prefer the blood bag with the earliest expiration date.
+o Reasoning: This is the primary preference for minimizing waste due to expired units. It is often a deciding factor between two otherwise equally optimal bags.
+3. Rule of Stock Level Buffering: The system should prefer to draw from blood types with OPTIMAL or SURPLUS stock levels.
+o Reasoning: This acts as a buffer to prevent a blood type from entering a LOW or CRITICAL state. This preference can be overridden by more critical factors (like clinical urgency or a perfect match for a chronic patient), but it helps maintain overall inventory stability.
+Part 3: Request-Centric Preferences
+This preference weights the allocation decision based on the urgency of the need.
+1. Clinical Urgency Weighting: Each request for blood should be assigned a priority level, which acts as a multiplier in the allocation scoring.
+o Tier 1 (Emergency): The highest weight. A critical need may justify overriding lower-priority preferences, such as the Rule of Opportunity Cost (e.g., using O- blood immediately to save a life).
+o Tier 2 (Urgent): A high weight, but typically not high enough to override strong preferences like preserving rare blood types.
+o Tier 3 (Scheduled/Elective): A standard weight. These requests should adhere strictly to all optimization preferences.
+Part 4: Donor Management Preferences
+These rules guide the proactive management of the donor pool to ensure a healthy incoming supply.
+1. Preference for Donor Exclusivity: When running targeted donation campaigns for a specific low-stock blood type, prioritize contacting donors whose blood type has low donation versatility.
+o Reasoning: It's more efficient to call a Type B donor for a B-stock shortage than to call an O+ donor, as the B donor's contribution is more specialized.
+2. Preference for Donor Readiness & Reliability:
+o Readiness: Prefer contacting donors who are currently eligible and nearing the end of their mandatory wait period.
+o Reliability: Prefer contacting donors with a strong history of kept appointments, especially in times of urgent need.
+o Test Recency: Prefer donors with recent health screenings, as they are more likely to result in a usable donation.
+Conditions:
+Conditions for questionnaire:
+Temporary Disqualification								Deferral Period
+Miscarriage, after natural childbirth (without breastfeeding)				6 months
+Surgical operations, previous blood transfusion, cupping (Hijama), tattoos		12 months
+Hepatitis in the family or close contact with hepatitis patients			12 months
+Those infected with Malaria (depending on the epidemiological level of the region):
+For areas where the disease is endemic						12 months after recovery
+For areas where the disease is not endemic						3 years after recovery
+Typhoid fever										12 months after full recovery
+Infection with Tuberculosis (TB) *							Two years after confirmation of full recovery
+Tooth extraction									One week
+Hepatitis vaccine									6 months
+Rabies virus vaccine									12 months
+Taking Aspirin										5 days
+Use of antibiotics to treat acute infection:	
+Injected antibiotics									14 days after finishing the course
+Oral antibiotics									7 days after finishing the course
+Medications										Referred to the blood bank doctor emergency doctor at the hospital
+Breastfeeding										6 months after stopping breastfeeding
+Vaccinations (Typhoid, Cholera, Tetanus, Plague)					One month from the date of vaccination
+Infection with Dengue fever virus and Krefs virus					6 months after full recovery
+Chewing Qat										At least 12 hours before the donation
+Smoking and chewing tobacco								One hour before the donation
+Insomnia and lack of sleep								Must sleep well (at least 8 hours) before donating
+
+—---------------------------------------
+Strict disqualification:
+—---------------------------------------
+Severe and chronic allergic diseases.
+Chronic diseases such as diabetes, chronic heart disease, kidney disease, and lung disease.
+Cancers.
+If the donor has experienced adverse reactions to blood donation more than twice.
+Jaundice and liver diseases.
+Addiction to medications or illicit drugs.
+Sexual deviants
+AIDS and sexually transmitted diseases (STDs).
+Epilepsy.
+Blood diseases and hereditary bleeding disorders.
+Infection with viral Hepatitis B or C.
+Leprosy.
+Schizophrenia.
+Vitiligo.
+Unexplained weight loss.
+Endocrine disorders.
+Polycythemia Vera.
+Brucellosis infection.
+Neurosurgery, organ transplantation, stem cell transplantation, and corneal transplantation.
+
+------------------------------------------
+Conditions health screening
+------------------------------------------
+one donation per 3 months for males and 6 months for females
+age is 18 to 55 for men and 18 to 50 for women
+minimum weight for men and women is 50kg for donating 450ml of blood
+
+systolic blood pressure
+diastolic blood pressure
+heart beat rate 60-100 BPM
+body temperature not more than 37.5 Celsius. (36.5-37.5)
+The donor must not suffer from any skin disease or have skin punctures (which indicates a recent donation) or scarring at the needle site (which indicates high-risk behavior by the donor, such as being a drug user).
+
+------------------------------------------
+lab tests conditions
+------------------------------------------
+The donor's temperature and pulse must be normal:
+
+Temperature: 36.5–37.5 degrees Celsius.
+Pulse: 60–100 beats/minute.
+Hemoglobin (blood concentration):
+
+Male: 14–18 g/dL.
+Female: 12.5–16 g/dL.
+Hematocrit percentage (PCV% / HCT%):
+
+Male: 42%–54%.
+Female: 38%–48%.
+
+
+____________________________________________
+
+You've asked some excellent, insightful questions that get to the heart of blood bank logic and inventory management. Let's break it down.
+
+1. Is it standard to crossmatch all matching blood type bags with the patient's blood?
+
+No, not all of them. That would be incredibly wasteful of time, resources, and reagents.
+
+The standard procedure is to crossmatch only the number of units the hospital has requested.
+
+If the hospital requests 1 unit of A+ blood: The blood bank will select one suitable A+ unit from their inventory and perform a crossmatch with the patient's sample.
+
+If the hospital requests 3 units: The blood bank will select three suitable units and crossmatch all three.
+
+The goal is to find compatible units, not to test the entire inventory. The "Group and Screen" (Step 2 in the text) is the initial check to see if the patient has unexpected antibodies. If the antibody screen is negative, finding compatible blood of the same ABO/Rh type is usually straightforward, and a computer-based "electronic crossmatch" might even be used in some modern systems, which is faster. If the antibody screen is positive, the lab has to do more work to identify the antibody and then find donor units that lack the corresponding antigen, which is a more complex process.
+
+2. What if there are 3 crossmatched blood bags? Which one to give the patient?
+
+This is a great logistics and inventory management question. Let's say a hospital requested 3 units, and the lab successfully crossmatched 3 units (let's call them Bag A, Bag B, and Bag C) for Patient Smith.
+
+Allocation: All three bags are now formally allocated and reserved for Patient Smith. They are physically (and in the computer system) taken out of the general "Available" inventory and put into a "Reserved for Patient Smith" or "Crossmatched" status.
+
+Order of Transfusion: The decision of which bag to send first is usually based on inventory management principles, primarily "First-In, First-Out" (FIFO), but in this case, it's more accurately "First-to-Expire, First-Out" (FEFO).
+
+The blood bank technologist will look at the expiration dates of Bag A, Bag B, and Bag C.
+
+The unit with the earliest expiration date will be issued first.
+
+This is a critical practice to minimize wastage of this precious resource.
+
+3. What about other incoming requests? (The "Resource Allocation" Problem)
+
+This is the core of your question and a key challenge for blood banks.
+
+"(considering there might be coming requests that might not crossmatch the other bags, but is compatible with the one the other patient allocated)"
+
+This is precisely why blood banks are careful and follow strict protocols. Let's use an example:
+
+Inventory: The blood bank has two O-negative units.
+
+Unit #1 (expires in 10 days)
+
+Unit #2 (expires in 25 days)
+
+Request 1 (Patient Smith): An urgent request comes in for one unit of O-negative blood.
+
+The lab selects Unit #1 (the one expiring sooner) for the crossmatch.
+
+The crossmatch is successful. Unit #1 is now reserved for Patient Smith and is no longer available to anyone else. It's effectively "off the market."
+
+Request 2 (Patient Jones): A new emergency request comes in for one unit of O-negative blood.
+
+The lab looks at the available inventory. Only Unit #2 is available.
+
+They will now perform a crossmatch using Unit #2 and Patient Jones's sample.
+
+What if Patient Jones's blood is incompatible with Unit #2, but would have been compatible with Unit #1?
+
+This is a very rare but theoretically possible scenario, usually involving specific, uncommon antibodies.
+
+This is the risk that the blood bank manages. By allocating Unit #1 to the first valid request, they have fulfilled their responsibility. They cannot hold units "in case" a "more compatible" patient comes along later. The system is fundamentally "first come, first served" for compatible blood, guided by the FEFO principle.
+
+If Patient Jones is incompatible with the last available O-negative unit, the blood bank is now in a critical shortage situation for that patient. They would have to:
+
+Notify the physician immediately.
+
+Begin an urgent search for other suitable donors.
+
+Contact other blood centers to see if they can supply a compatible unit.
+
+The physician might have to consider alternative clinical strategies.
+
+In summary:
+
+Crossmatching is done only for the number of units requested.
+
+Once a unit is crossmatched and found compatible, it is reserved exclusively for that patient and cannot be used for another request.
+
+The choice of which compatible unit to crossmatch and issue first is driven by the "First-to-Expire, First-Out" (FEFO) principle to minimize wastage.
+
+Your blood bank system's logic should reflect this: when a unit's status changes to "Crossmatched" or "Reserved," it must be removed from the pool of "Available" units for any new requests.
+___________________________________________
+Summary of Key Principles:
+Prioritize Requests: First by urgency level, then by the timestamp they were received.
+Select Inventory by FEFO: Always test against the available unit that will expire soonest.
+Reserve Immediately: A successful crossmatch immediately reserves that specific unit for that specific patient. It is no longer "available" for anyone else.
+Handle Failure Gracefully: If a crossmatch fails, the request remains active, and the system attempts to find another compatible unit by moving to the next bag in the FEFO order. The incompatible bag is returned to the available pool.
+Atomicity: This entire process (checking availability, reserving, updating status) must be an atomic transaction in the database to prevent a "race condition" where two requests might try to claim the same unit at the exact same millisecond.
+_________________________________________
+actions:
+7.1 Donor Mobile Application 
+7.1.1 Use Case: Register as Donor 
+7.1.2 Use Case: Donor Login 
+7.1.3 Use Case: Complete Initial Donor Eligibility Quiz 
+7.1.6 Use Case: View Donation History & Eligibility 
+7.1.7 Use Case: Manage Profile 
+7.2 Bloodbank Web Application 
+7.2.1 Use Case: Bloodbank Login 
+7.2.2 Use Case: Manage Donor Profiles 
+7.2.4 Use Case: Health Screening Questionnaire 
+7.2.5 Use Case: Manage Blood Inventory 
+7.2.6 Use Case: Upload Crossmatch Report 
+7.2.7 Use Case: Confirm Crossmatch Reports 
+7.2.8 Use Case: see Blood Requests 
+7.3 Hospital Web Application 
+7.3.1 Use Case: Hospital Login 
+7.3.2 Use Case: Submit Blood Request 
+7.3.3 Use Case: View Request Status 
+7.3.4 Use Case: Select Al Recommended Blood
+
+    
