@@ -98,15 +98,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBloodRequests(hospitalId?: number): Promise<BloodRequest[]> {
-    const query = db
+    if (hospitalId) {
+      return await db
+        .select()
+        .from(bloodRequests)
+        .where(eq(bloodRequests.hospitalId, hospitalId))
+        .orderBy(desc(bloodRequests.createdAt));
+    }
+    
+    return await db
       .select()
       .from(bloodRequests)
       .orderBy(desc(bloodRequests.createdAt));
-    
-    if (hospitalId) {
-      return await query.where(eq(bloodRequests.hospitalId, hospitalId));
-    }
-    return await query;
   }
 
   async getBloodRequestById(id: number): Promise<BloodRequest | undefined> {
@@ -134,33 +137,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBloodBags(bankId?: number): Promise<BloodBag[]> {
-    const query = db
+    if (bankId) {
+      return await db
+        .select()
+        .from(bloodBags)
+        .where(eq(bloodBags.bankId, bankId))
+        .orderBy(asc(bloodBags.expiryDate));
+    }
+    
+    return await db
       .select()
       .from(bloodBags)
       .orderBy(asc(bloodBags.expiryDate));
-    
-    if (bankId) {
-      return await query.where(eq(bloodBags.bankId, bankId));
-    }
-    return await query;
   }
 
   async getAvailableBloodBags(bloodType?: string): Promise<BloodBag[]> {
-    const query = db
+    if (bloodType) {
+      return await db
+        .select()
+        .from(bloodBags)
+        .where(and(
+          eq(bloodBags.status, "Available"),
+          eq(bloodBags.bloodType, bloodType as any)
+        ))
+        .orderBy(asc(bloodBags.expiryDate));
+    }
+    
+    return await db
       .select()
       .from(bloodBags)
       .where(eq(bloodBags.status, "Available"))
       .orderBy(asc(bloodBags.expiryDate));
-    
-    if (bloodType) {
-      return await query.where(
-        and(
-          eq(bloodBags.status, "Available"),
-          eq(bloodBags.bloodType, bloodType as any)
-        )
-      );
-    }
-    return await query;
   }
 
   async updateBloodBagStatus(id: string, status: string): Promise<void> {

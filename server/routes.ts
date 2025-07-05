@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let requests;
       if (user.role === 'hospital_staff') {
         const staffDetails = await storage.getStaffDetails(userId);
-        requests = await storage.getBloodRequests(staffDetails?.hospitalId);
+        requests = await storage.getBloodRequests(staffDetails?.hospitalId ?? undefined);
       } else if (user.role === 'blood_bank_staff') {
         // Blood bank staff can see all requests
         requests = await storage.getBloodRequests();
@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let bags;
       if (user.role === 'blood_bank_staff') {
         const staffDetails = await storage.getStaffDetails(userId);
-        bags = await storage.getBloodBags(staffDetails?.bankId);
+        bags = await storage.getBloodBags(staffDetails?.bankId ?? undefined);
       } else if (user.role === 'hospital_staff') {
         // Hospital staff can see available bags
         bags = await storage.getAvailableBloodBags();
@@ -211,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let stats;
       if (user.role === 'blood_bank_staff') {
         const staffDetails = await storage.getStaffDetails(userId);
-        stats = await storage.getBloodInventoryStats(staffDetails?.bankId);
+        stats = await storage.getBloodInventoryStats(staffDetails?.bankId ?? undefined);
       } else if (user.role === 'hospital_staff') {
         stats = await storage.getBloodInventoryStats();
       } else {
@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let stats;
       if (user.role === 'hospital_staff') {
         const staffDetails = await storage.getStaffDetails(userId);
-        stats = await storage.getRequestStats(staffDetails?.hospitalId);
+        stats = await storage.getRequestStats(staffDetails?.hospitalId ?? undefined);
       } else if (user.role === 'blood_bank_staff') {
         stats = await storage.getRequestStats();
       } else {
