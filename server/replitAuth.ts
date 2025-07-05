@@ -14,10 +14,23 @@ if (!process.env.REPLIT_DOMAINS) {
 
 const getOidcConfig = memoize(
   async () => {
-    return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
-    );
+    try {
+      console.log("[AUTH DEBUG] Discovering OIDC config with:", {
+        issuerUrl: process.env.ISSUER_URL ?? "https://replit.com/oidc",
+        clientId: process.env.REPL_ID
+      });
+      
+      const config = await client.discovery(
+        new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+        process.env.REPL_ID!
+      );
+      
+      console.log("[AUTH DEBUG] OIDC config discovered successfully");
+      return config;
+    } catch (error) {
+      console.error("[AUTH DEBUG] OIDC discovery failed:", error);
+      throw error;
+    }
   },
   { maxAge: 3600 * 1000 }
 );
@@ -103,17 +116,27 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const claims = tokens.claims();
-    const user = {
-      id: claims.sub,
-      claims: claims,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: claims.exp
-    };
-    await upsertUser(claims);
-    console.log("[AUTH DEBUG] User verified:", { userId: claims.sub, expires_at: claims.exp });
-    verified(null, user);
+    try {
+      const claims = tokens.claims();
+      if (!claims) {
+        console.error("[AUTH DEBUG] No claims found in tokens");
+        return verified(new Error("No claims found"));
+      }
+      
+      const user = {
+        id: claims.sub,
+        claims: claims,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: claims.exp
+      };
+      await upsertUser(claims);
+      console.log("[AUTH DEBUG] User verified:", { userId: claims.sub, expires_at: claims.exp });
+      verified(null, user);
+    } catch (error) {
+      console.error("[AUTH DEBUG] Verification error:", error);
+      verified(error as Error);
+    }
   };
 
   for (const domain of process.env
