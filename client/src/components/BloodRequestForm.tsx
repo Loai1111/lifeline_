@@ -75,6 +75,7 @@ export default function BloodRequestForm() {
       form.reset();
     },
     onError: (error) => {
+      console.error("Blood request error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -86,9 +87,10 @@ export default function BloodRequestForm() {
         }, 500);
         return;
       }
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit blood request";
       toast({
         title: "Error",
-        description: "Failed to submit blood request",
+        description: errorMessage,
         variant: "destructive",
       });
     },

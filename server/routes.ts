@@ -45,6 +45,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.updateUserRole(userId, role);
+      
+      // Create staff details if role is hospital_staff or blood_bank_staff
+      if (role === 'hospital_staff' || role === 'blood_bank_staff') {
+        const existingStaffDetails = await storage.getStaffDetails(userId);
+        if (!existingStaffDetails) {
+          // Get a default hospital or blood bank
+          if (role === 'hospital_staff') {
+            const hospitals = await storage.getHospitals();
+            const defaultHospital = hospitals[0]; // Use first available hospital
+            if (defaultHospital) {
+              await storage.createStaffDetails({
+                userId,
+                hospitalId: defaultHospital.id,
+                bankId: null,
+                jobTitle: 'Staff',
+                isAdmin: false,
+              });
+            }
+          } else if (role === 'blood_bank_staff') {
+            const bloodBanks = await storage.getBloodBanks();
+            const defaultBloodBank = bloodBanks[0]; // Use first available blood bank
+            if (defaultBloodBank) {
+              await storage.createStaffDetails({
+                userId,
+                hospitalId: null,
+                bankId: defaultBloodBank.id,
+                jobTitle: 'Staff',
+                isAdmin: false,
+              });
+            }
+          }
+        }
+      }
+      
       res.json({ message: "Role updated successfully" });
     } catch (error) {
       console.error("Error updating role:", error);
