@@ -8,6 +8,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import HospitalDashboard from "@/pages/HospitalDashboard";
 import BloodBankDashboard from "@/pages/BloodBankDashboard";
+import DonorDashboard from "@/pages/DonorDashboard";
+import RoleSelection from "@/pages/RoleSelection";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -34,12 +36,16 @@ function Router() {
               return <HospitalDashboard />;
             } else if (user?.role === 'blood_bank_staff') {
               return <BloodBankDashboard />;
+            } else if (user?.role === 'donor') {
+              return <DonorDashboard />;
             } else {
-              return <Landing />;
+              return <RoleSelection />;
             }
           }} />
+          <Route path="/role-selection" component={RoleSelection} />
           <Route path="/hospital/*" component={HospitalDashboard} />
           <Route path="/blood-bank/*" component={BloodBankDashboard} />
+          <Route path="/donor/*" component={DonorDashboard} />
         </>
       )}
       <Route component={NotFound} />

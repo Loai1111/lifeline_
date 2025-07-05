@@ -28,6 +28,7 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserRole(id: string, role: string): Promise<void>;
   
   // Blood request operations
   createBloodRequest(request: InsertBloodRequest): Promise<BloodRequest>;
@@ -86,6 +87,13 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateUserRole(id: string, role: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ role: role as any, updatedAt: new Date() })
+      .where(eq(users.id, id));
   }
 
   // Blood request operations

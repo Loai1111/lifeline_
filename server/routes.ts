@@ -34,6 +34,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Role update route
+  app.post('/api/auth/role', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role } = req.body;
+      
+      if (!['donor', 'hospital_staff', 'blood_bank_staff'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      await storage.updateUserRole(userId, role);
+      res.json({ message: "Role updated successfully" });
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
   // Blood request routes
   app.post('/api/blood-requests', isAuthenticated, async (req: any, res) => {
     try {
