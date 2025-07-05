@@ -49,12 +49,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create staff details if role is hospital_staff or blood_bank_staff
       if (role === 'hospital_staff' || role === 'blood_bank_staff') {
         const existingStaffDetails = await storage.getStaffDetails(userId);
+        console.log('Existing staff details:', existingStaffDetails);
         if (!existingStaffDetails) {
           // Get a default hospital or blood bank
           if (role === 'hospital_staff') {
             const hospitals = await storage.getHospitals();
+            console.log('Available hospitals:', hospitals);
             const defaultHospital = hospitals[0]; // Use first available hospital
             if (defaultHospital) {
+              console.log('Creating staff details for hospital:', defaultHospital.id);
               await storage.createStaffDetails({
                 userId,
                 hospitalId: defaultHospital.id,
@@ -65,8 +68,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } else if (role === 'blood_bank_staff') {
             const bloodBanks = await storage.getBloodBanks();
+            console.log('Available blood banks:', bloodBanks);
             const defaultBloodBank = bloodBanks[0]; // Use first available blood bank
             if (defaultBloodBank) {
+              console.log('Creating staff details for blood bank:', defaultBloodBank.id);
               await storage.createStaffDetails({
                 userId,
                 hospitalId: null,
