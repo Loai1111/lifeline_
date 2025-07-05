@@ -7,6 +7,7 @@ import Layout from "@/components/Layout";
 import BloodBankSidebar from "@/components/BloodBankSidebar";
 import RequestsTable from "@/components/RequestsTable";
 import InventoryGrid from "@/components/InventoryGrid";
+import RoleSwitcher from "@/components/RoleSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Clock, AlertTriangle, Users } from "lucide-react";
@@ -66,6 +67,8 @@ function BloodBankDashboardContent() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Blood Bank Dashboard</h2>
         <p className="text-gray-600">Monitor inventory levels, manage requests, and track donor activities.</p>
       </div>
+      
+      <RoleSwitcher currentRole={user?.role} />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

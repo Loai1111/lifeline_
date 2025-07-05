@@ -49,15 +49,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create staff details if role is hospital_staff or blood_bank_staff
       if (role === 'hospital_staff' || role === 'blood_bank_staff') {
         const existingStaffDetails = await storage.getStaffDetails(userId);
-        console.log('Existing staff details:', existingStaffDetails);
         if (!existingStaffDetails) {
           // Get a default hospital or blood bank
           if (role === 'hospital_staff') {
             const hospitals = await storage.getHospitals();
-            console.log('Available hospitals:', hospitals);
             const defaultHospital = hospitals[0]; // Use first available hospital
             if (defaultHospital) {
-              console.log('Creating staff details for hospital:', defaultHospital.id);
               await storage.createStaffDetails({
                 userId,
                 hospitalId: defaultHospital.id,
@@ -68,10 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } else if (role === 'blood_bank_staff') {
             const bloodBanks = await storage.getBloodBanks();
-            console.log('Available blood banks:', bloodBanks);
-            const defaultBloodBank = bloodBanks[0]; // Use first available blood bank
+                const defaultBloodBank = bloodBanks[0]; // Use first available blood bank
             if (defaultBloodBank) {
-              console.log('Creating staff details for blood bank:', defaultBloodBank.id);
               await storage.createStaffDetails({
                 userId,
                 hospitalId: null,
@@ -94,20 +89,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Blood request routes
   app.post('/api/blood-requests', isAuthenticated, async (req: any, res) => {
     try {
-      console.log('Blood request received:', req.body);
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      console.log('User found:', user);
       
       if (!user || user.role !== 'hospital_staff') {
-        console.log('Access denied - invalid user or role');
         return res.status(403).json({ message: "Access denied" });
       }
       
       const staffDetails = await storage.getStaffDetails(userId);
-      console.log('Staff details:', staffDetails);
       if (!staffDetails?.hospitalId) {
-        console.log('No hospital association found');
         return res.status(400).json({ message: "Hospital staff must be associated with a hospital" });
       }
       
@@ -115,12 +105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let requiredByDate;
       try {
         requiredByDate = new Date(req.body.requiredBy);
-        console.log('Parsed date:', requiredByDate);
         if (isNaN(requiredByDate.getTime())) {
           return res.status(400).json({ message: "Invalid required by date" });
         }
       } catch (dateError) {
-        console.log('Date parsing error:', dateError);
         return res.status(400).json({ message: "Invalid required by date format" });
       }
       
@@ -130,13 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffId: userId,
         requiredBy: requiredByDate,
       };
-      console.log('Request data before validation:', requestData);
       
       const validatedData = insertBloodRequestSchema.parse(requestData);
-      console.log('Validated data:', validatedData);
-      
       const bloodRequest = await storage.createBloodRequest(validatedData);
-      console.log('Blood request created:', bloodRequest);
       res.json(bloodRequest);
     } catch (error: any) {
       console.error("Error creating blood request:", error);

@@ -8,6 +8,7 @@ import HospitalSidebar from "@/components/HospitalSidebar";
 import BloodRequestForm from "@/components/BloodRequestForm";
 import RequestsTable from "@/components/RequestsTable";
 import InventoryGrid from "@/components/InventoryGrid";
+import RoleSwitcher from "@/components/RoleSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, CheckCircle, AlertTriangle, BarChart3 } from "lucide-react";
@@ -69,6 +70,8 @@ function HospitalDashboardContent() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Hospital Dashboard</h2>
         <p className="text-gray-600">Welcome back, {user?.firstName}. Manage your blood requests and track inventory.</p>
       </div>
+      
+      <RoleSwitcher currentRole={user?.role} />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
