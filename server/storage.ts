@@ -36,6 +36,12 @@ export interface IStorage {
   getBloodRequestById(id: number): Promise<BloodRequest | undefined>;
   updateBloodRequestStatus(id: number, status: string): Promise<void>;
   
+  // Workflow operations
+  findSuitableBags(bloodType: string, count: number): Promise<BloodBag[]>;
+  allocateBagToRequest(requestId: number, bagId: string): Promise<void>;
+  confirmCrossmatch(requestId: number, bagId: string, successful: boolean): Promise<void>;
+  dispatchAllocatedBag(requestId: number, bagId: string): Promise<void>;
+  
   // Blood bag operations
   createBloodBag(bag: InsertBloodBag): Promise<BloodBag>;
   getBloodBags(bankId?: number): Promise<BloodBag[]>;
@@ -306,12 +312,60 @@ export class DatabaseStorage implements IStorage {
       stats.total += result.count;
       if (result.status === "Pending") {
         stats.pending = result.count;
-      } else if (result.status === "Approved") {
-        stats.approved = result.count;
+      } else if (["Allocated", "Issued", "Fulfilled"].includes(result.status)) {
+        stats.approved += result.count;
       }
     });
     
     return stats;
+  }
+
+  async findSuitableBags(bloodType: string, count: number): Promise<BloodBag[]> {
+    const bags = await db.select()
+      .from(bloodBags)
+      .where(and(
+        eq(bloodBags.bloodType, bloodType as any),
+        eq(bloodBags.status, 'Available')
+      ))
+      .limit(count);
+    
+    return bags;
+  }
+
+  async allocateBagToRequest(requestId: number, bagId: string): Promise<void> {
+    await db.update(bloodBags)
+      .set({ status: 'Reserved' })
+      .where(eq(bloodBags.id, bagId));
+  }
+
+  async confirmCrossmatch(requestId: number, bagId: string, successful: boolean): Promise<void> {
+    if (successful) {
+      await db.update(bloodBags)
+        .set({ status: 'Crossmatched' })
+        .where(eq(bloodBags.id, bagId));
+      
+      await db.update(bloodRequests)
+        .set({ status: 'Allocated' })
+        .where(eq(bloodRequests.id, requestId));
+    } else {
+      await db.update(bloodBags)
+        .set({ status: 'Available' })
+        .where(eq(bloodBags.id, bagId));
+      
+      await db.update(bloodRequests)
+        .set({ status: 'Escalated_To_Donors' })
+        .where(eq(bloodRequests.id, requestId));
+    }
+  }
+
+  async dispatchAllocatedBag(requestId: number, bagId: string): Promise<void> {
+    await db.update(bloodBags)
+      .set({ status: 'Issued' })
+      .where(eq(bloodBags.id, bagId));
+    
+    await db.update(bloodRequests)
+      .set({ status: 'Issued' })
+      .where(eq(bloodRequests.id, requestId));
   }
 }
 

@@ -5,12 +5,46 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import Layout from "@/components/Layout";
 import BloodBankSidebar from "@/components/BloodBankSidebar";
-import RequestsTable from "@/components/RequestsTable";
+import BloodRequestWorkflow from "@/components/BloodRequestWorkflow";
 import InventoryGrid from "@/components/InventoryGrid";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Clock, AlertTriangle, Users } from "lucide-react";
+
+function BloodRequestWorkflowSection() {
+  const { user } = useAuth();
+  const { data: requests, isLoading } = useQuery({
+    queryKey: ['/api/blood-requests'],
+    enabled: user?.role === 'blood_bank_staff'
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-4">Loading requests...</div>;
+  }
+
+  const allRequests = requests || [];
+
+  if (allRequests.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No blood requests at the moment
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {allRequests.map((request: any) => (
+        <BloodRequestWorkflow 
+          key={request.id} 
+          request={request} 
+          userRole={user?.role || ''}
+        />
+      ))}
+    </div>
+  );
+}
 
 function BloodBankDashboardContent() {
   const { toast } = useToast();
@@ -129,15 +163,26 @@ function BloodBankDashboardContent() {
         </Card>
       </div>
 
-      {/* Blood Type Inventory */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Blood Type Inventory</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <InventoryGrid stats={inventoryStats} />
-        </CardContent>
-      </Card>
+      {/* Blood Type Inventory and Request Workflow */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Blood Type Inventory</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InventoryGrid stats={inventoryStats} />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Blood Request Workflow</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+            <BloodRequestWorkflowSection />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

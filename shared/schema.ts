@@ -32,7 +32,16 @@ export const roleEnum = pgEnum("role", ["donor", "blood_bank_staff", "hospital_s
 export const bloodTypeEnum = pgEnum("blood_type", ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]);
 export const genderEnum = pgEnum("gender", ["Male", "Female"]);
 export const priorityEnum = pgEnum("priority", ["Emergency", "Urgent", "Routine"]);
-export const requestStatusEnum = pgEnum("request_status", ["Pending", "Approved", "Cross-matched", "Fulfilled", "Rejected"]);
+export const requestStatusEnum = pgEnum("request_status", [
+  "Pending", 
+  "Pending_Crossmatch", 
+  "Escalated_To_Donors", 
+  "Allocated", 
+  "Issued", 
+  "Fulfilled", 
+  "Cancelled_By_Hospital", 
+  "Rejected_By_Bloodbank"
+]);
 export const bagStatusEnum = pgEnum("bag_status", ["Pending Testing", "Available", "Reserved", "Crossmatched", "Issued", "Used", "Discarded"]);
 
 // Core entities

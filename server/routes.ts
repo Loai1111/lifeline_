@@ -270,6 +270,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Workflow management routes
+  app.post('/api/blood-requests/:id/process', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const bloodRequest = await storage.getBloodRequestById(requestId);
+      
+      if (!bloodRequest) {
+        return res.status(404).json({ message: "Blood request not found" });
+      }
+      
+      // Check if request is in Pending status
+      if (bloodRequest.status !== 'Pending') {
+        return res.status(400).json({ message: "Request is not in pending status" });
+      }
+      
+      // Find suitable bags for this request
+      const suitableBags = await storage.findSuitableBags(bloodRequest.bloodType, bloodRequest.unitsRequested);
+      
+      if (suitableBags.length >= bloodRequest.unitsRequested) {
+        // Move to Pending_Crossmatch status
+        await storage.updateBloodRequestStatus(requestId, 'Pending_Crossmatch');
+        
+        // Reserve the bags
+        for (let i = 0; i < bloodRequest.unitsRequested; i++) {
+          await storage.allocateBagToRequest(requestId, suitableBags[i].id);
+        }
+        
+        res.json({ 
+          message: "Request moved to crossmatch phase", 
+          status: "Pending_Crossmatch",
+          allocatedBags: suitableBags.slice(0, bloodRequest.unitsRequested)
+        });
+      } else {
+        // Not enough stock, escalate to donors
+        await storage.updateBloodRequestStatus(requestId, 'Escalated_To_Donors');
+        res.json({ 
+          message: "Insufficient stock - escalated to donors", 
+          status: "Escalated_To_Donors" 
+        });
+      }
+    } catch (error) {
+      console.error("Error processing blood request:", error);
+      res.status(500).json({ message: "Failed to process blood request" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/crossmatch', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { bagId, successful } = req.body;
+      
+      await storage.confirmCrossmatch(requestId, bagId, successful);
+      
+      res.json({ 
+        message: successful ? "Crossmatch successful - bag allocated" : "Crossmatch failed - escalated to donors",
+        status: successful ? "Allocated" : "Escalated_To_Donors"
+      });
+    } catch (error) {
+      console.error("Error confirming crossmatch:", error);
+      res.status(500).json({ message: "Failed to confirm crossmatch" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/dispatch', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { bagId } = req.body;
+      
+      await storage.dispatchAllocatedBag(requestId, bagId);
+      
+      res.json({ 
+        message: "Bag dispatched successfully",
+        status: "Issued"
+      });
+    } catch (error) {
+      console.error("Error dispatching bag:", error);
+      res.status(500).json({ message: "Failed to dispatch bag" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/reject', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      await storage.updateBloodRequestStatus(requestId, 'Rejected_By_Bloodbank');
+      
+      res.json({ 
+        message: "Request rejected",
+        status: "Rejected_By_Bloodbank",
+        reason
+      });
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+      res.status(500).json({ message: "Failed to reject request" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/cancel', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'hospital_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      await storage.updateBloodRequestStatus(requestId, 'Cancelled_By_Hospital');
+      
+      res.json({ 
+        message: "Request cancelled",
+        status: "Cancelled_By_Hospital"
+      });
+    } catch (error) {
+      console.error("Error cancelling request:", error);
+      res.status(500).json({ message: "Failed to cancel request" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/received', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'hospital_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      await storage.updateBloodRequestStatus(requestId, 'Fulfilled');
+      
+      res.json({ 
+        message: "Blood received and request fulfilled",
+        status: "Fulfilled"
+      });
+    } catch (error) {
+      console.error("Error confirming receipt:", error);
+      res.status(500).json({ message: "Failed to confirm receipt" });
+    }
+  });
+
   // Statistics routes
   app.get('/api/stats/inventory', isAuthenticated, async (req: any, res) => {
     try {
