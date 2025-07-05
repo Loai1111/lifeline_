@@ -31,6 +31,13 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  console.log("[SESSION DEBUG] Creating session with config:", {
+    nodeEnv: process.env.NODE_ENV,
+    secure: process.env.NODE_ENV === 'production',
+    ttl: sessionTtl
+  });
+  
   return session({
     secret: process.env.SESSION_SECRET || 'cd93cb7f0482c8287da1a8e1206e7936e3ba0ebe5593ea5f8ab0af1c2c9790ce',
     store: sessionStore,
@@ -40,6 +47,7 @@ export function getSession() {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
   });
 }
@@ -126,6 +134,12 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
+    console.log("[AUTH DEBUG] Callback route hit:", {
+      hostname: req.hostname,
+      sessionID: req.sessionID,
+      query: req.query
+    });
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
@@ -147,7 +161,17 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  // Debug logging
+  console.log("[AUTH DEBUG] isAuthenticated check:", {
+    isAuthenticated: req.isAuthenticated(),
+    hasUser: !!user,
+    hasExpiresAt: user?.expires_at,
+    sessionID: req.sessionID,
+    path: req.path
+  });
+
+  if (!req.isAuthenticated() || !user?.expires_at) {
+    console.log("[AUTH DEBUG] Authentication failed - no session or expires_at");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -158,16 +182,20 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
+    console.log("[AUTH DEBUG] Token expired and no refresh token available");
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
   try {
+    console.log("[AUTH DEBUG] Attempting to refresh token");
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
+    console.log("[AUTH DEBUG] Token refreshed successfully");
     return next();
   } catch (error) {
+    console.error("[AUTH DEBUG] Token refresh failed:", error);
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
