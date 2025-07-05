@@ -27,7 +27,9 @@ Lifeline is a comprehensive blood donation management system designed to connect
 ├── server/          # Express backend server
 ├── shared/          # Shared types and schemas
 ├── migrations/      # Database migration files
-└── attached_assets/ # Reference documents and specifications
+├── attached_assets/ # Reference documents and specifications
+├── database_setup.sql    # Complete database schema setup
+└── DATABASE_SETUP.md     # Database setup instructions
 ```
 
 ## Key Components
@@ -127,6 +129,11 @@ Changelog:
   - Implemented proper blood request status workflow logic
   - Fixed import errors and runtime issues
   - Added workflow routes for crossmatch, allocation, and dispatch
+- July 05, 2025. Added database setup automation
+  - Created database_setup.sql with complete schema definition
+  - Added DATABASE_SETUP.md with setup instructions
+  - Included sample data and proper indexing for performance
+  - Automated setup for cloning and deployment scenarios
 ```
 
 ## User Preferences
