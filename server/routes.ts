@@ -112,11 +112,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid required by date format" });
       }
       
+      // Check inventory availability to determine initial status
+      const { bloodType, unitsRequested } = req.body;
+      const availableBags = await storage.getAvailableBloodBags(bloodType);
+      
+      let initialStatus = 'Pending';
+      if (availableBags.length === 0) {
+        // No inventory available
+        initialStatus = 'Escalated_To_Donors';
+      } else if (availableBags.length < unitsRequested) {
+        // Partial inventory available
+        initialStatus = 'Escalated_To_Donors';
+      } else {
+        // Sufficient inventory available
+        initialStatus = 'Pending_Crossmatch';
+      }
+      
       const requestData = {
         ...req.body,
         hospitalId: staffDetails.hospitalId,
         staffId: userId,
         requiredBy: requiredByDate,
+        status: initialStatus,
       };
       
       const validatedData = insertBloodRequestSchema.parse(requestData);
@@ -162,6 +179,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Blood request workflow routes
+  app.post('/api/blood-requests/:id/allocate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { bagId } = req.body;
+      
+      // Allocate bag to request
+      await storage.allocateBagToRequest(requestId, bagId);
+      await storage.updateBloodRequestStatus(requestId, 'Pending_Crossmatch');
+      
+      res.json({ 
+        message: "Blood bag allocated successfully",
+        status: "Pending Crossmatch"
+      });
+    } catch (error) {
+      console.error("Error allocating blood bag:", error);
+      res.status(500).json({ message: "Failed to allocate blood bag" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/crossmatch', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { bagId, successful } = req.body;
+      
+      // Confirm crossmatch result
+      await storage.confirmCrossmatch(requestId, bagId, successful);
+      
+      if (successful) {
+        await storage.updateBloodRequestStatus(requestId, 'Allocated');
+        res.json({ 
+          message: "Crossmatch successful, blood allocated",
+          status: "Allocated"
+        });
+      } else {
+        await storage.updateBloodRequestStatus(requestId, 'Escalated_To_Donors');
+        res.json({ 
+          message: "Crossmatch failed, escalated to donors",
+          status: "Escalated to Donors"
+        });
+      }
+    } catch (error) {
+      console.error("Error confirming crossmatch:", error);
+      res.status(500).json({ message: "Failed to confirm crossmatch" });
+    }
+  });
+
+  app.post('/api/blood-requests/:id/dispatch', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'blood_bank_staff') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const requestId = parseInt(req.params.id);
+      const { bagId } = req.body;
+      
+      // Dispatch allocated bag
+      await storage.dispatchAllocatedBag(requestId, bagId);
+      await storage.updateBloodRequestStatus(requestId, 'Issued');
+      
+      res.json({ 
+        message: "Blood bag dispatched successfully",
+        status: "Issued"
+      });
+    } catch (error) {
+      console.error("Error dispatching blood bag:", error);
+      res.status(500).json({ message: "Failed to dispatch blood bag" });
+    }
+  });
+
   app.put('/api/blood-requests/:id/status', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -174,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status } = req.body;
       
-      if (!['Pending', 'Approved', 'Cross-matched', 'Fulfilled', 'Rejected'].includes(status)) {
+      if (!['Pending_Crossmatch', 'Escalated_To_Donors', 'Allocated', 'Issued', 'Fulfilled', 'Cancelled_By_Hospital'].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
       
