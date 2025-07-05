@@ -7,6 +7,7 @@ import Layout from "@/components/Layout";
 import BloodBankSidebar from "@/components/BloodBankSidebar";
 import BloodRequestWorkflow from "@/components/BloodRequestWorkflow";
 import InventoryGrid from "@/components/InventoryGrid";
+import RequestsTable from "@/components/RequestsTable";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ function BloodRequestWorkflowSection() {
     return <div className="text-center py-4">Loading requests...</div>;
   }
 
-  const allRequests = requests || [];
+  const allRequests = (requests as any[]) || [];
 
   if (allRequests.length === 0) {
     return (
@@ -51,37 +52,11 @@ function BloodBankDashboardContent() {
   const { user } = useAuth();
   
   const { data: inventoryStats, isLoading: inventoryLoading } = useQuery({
-    queryKey: ['/api/stats/inventory'],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
+    queryKey: ['/api/stats/inventory']
   });
 
   const { data: requestStats, isLoading: requestsLoading } = useQuery({
-    queryKey: ['/api/stats/requests'],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
+    queryKey: ['/api/stats/requests']
   });
 
   if (inventoryLoading || requestsLoading) {
@@ -92,8 +67,11 @@ function BloodBankDashboardContent() {
     );
   }
 
-  const totalUnits = inventoryStats?.reduce((sum: number, item: any) => sum + item.count, 0) || 0;
-  const criticalTypes = inventoryStats?.filter((item: any) => item.count < 50).length || 0;
+  const inventoryData = (inventoryStats as any[]) || [];
+  const requestData = (requestStats as any) || {};
+  
+  const totalUnits = inventoryData.reduce((sum: number, item: any) => sum + item.count, 0);
+  const criticalTypes = inventoryData.filter((item: any) => item.count < 50).length;
 
   return (
     <div className="space-y-6">
@@ -125,7 +103,7 @@ function BloodBankDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending Requests</p>
-                <p className="text-2xl font-bold text-orange-600">{requestStats?.pending || 0}</p>
+                <p className="text-2xl font-bold text-orange-600">{requestData.pending || 0}</p>
               </div>
               <div className="bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center">
                 <Clock className="h-6 w-6 text-orange-600" />
@@ -170,7 +148,7 @@ function BloodBankDashboardContent() {
             <CardTitle>Blood Type Inventory</CardTitle>
           </CardHeader>
           <CardContent>
-            <InventoryGrid stats={inventoryStats} />
+            <InventoryGrid stats={inventoryData as Array<{ bloodType: string; count: number; status: string }>} />
           </CardContent>
         </Card>
         
