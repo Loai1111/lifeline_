@@ -382,4 +382,249 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// In-memory storage for development
+class MemoryStorage implements IStorage {
+  private users: Map<string, User> = new Map();
+  private bloodRequests: Map<number, BloodRequest> = new Map();
+  private bloodBags: Map<string, BloodBag> = new Map();
+  private healthScreenings: Map<number, HealthScreening> = new Map();
+  private hospitals: Hospital[] = [];
+  private bloodBanks: BloodBank[] = [];
+  private staffDetails: Map<string, StaffDetails> = new Map();
+  private donorProfiles: Map<string, DonorProfile> = new Map();
+  private nextId = 1;
+
+  constructor() {
+    // Initialize with sample data
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Sample hospitals
+    this.hospitals = [
+      { id: 1, name: 'General Hospital', address: '123 Main St', city: 'Springfield', contactPhone: '555-0101' },
+      { id: 2, name: 'Regional Medical Center', address: '456 Oak Ave', city: 'Springfield', contactPhone: '555-0102' }
+    ];
+
+    // Sample blood banks
+    this.bloodBanks = [
+      { id: 1, name: 'Central Blood Bank', address: '789 Pine St', city: 'Springfield', contactPhone: '555-0201', operatingHours: '24/7' },
+      { id: 2, name: 'Community Blood Center', address: '321 Elm St', city: 'Springfield', contactPhone: '555-0202', operatingHours: '9AM-5PM' }
+    ];
+
+    // Sample blood bags
+    const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    bloodTypes.forEach((type, idx) => {
+      for (let i = 0; i < 3; i++) {
+        const bagId = `BAG-${type}-${i + 1}`;
+        this.bloodBags.set(bagId, {
+          id: bagId,
+          donorId: `donor-${idx}-${i}`,
+          healthScreeningId: 1,
+          bankId: 1,
+          bloodType: type as any,
+          componentType: 'Whole Blood',
+          collectionDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+          expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'Available'
+        });
+      }
+    });
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: any): Promise<User> {
+    const user = {
+      ...userData,
+      createdAt: this.users.get(userData.id)?.createdAt || new Date(),
+      updatedAt: new Date()
+    };
+    this.users.set(userData.id, user);
+    return user;
+  }
+
+  async updateUserRole(id: string, role: string): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      user.role = role as any;
+      user.updatedAt = new Date();
+    }
+  }
+
+  async createBloodRequest(request: any): Promise<BloodRequest> {
+    const newRequest = {
+      id: this.nextId++,
+      ...request,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.bloodRequests.set(newRequest.id, newRequest);
+    return newRequest;
+  }
+
+  async getBloodRequests(hospitalId?: number): Promise<BloodRequest[]> {
+    const requests = Array.from(this.bloodRequests.values());
+    if (hospitalId) {
+      return requests.filter(r => r.hospitalId === hospitalId);
+    }
+    return requests;
+  }
+
+  async getBloodRequestById(id: number): Promise<BloodRequest | undefined> {
+    return this.bloodRequests.get(id);
+  }
+
+  async updateBloodRequestStatus(id: number, status: string): Promise<void> {
+    const request = this.bloodRequests.get(id);
+    if (request) {
+      request.status = status as any;
+      request.updatedAt = new Date();
+    }
+  }
+
+  async createBloodBag(bag: any): Promise<BloodBag> {
+    const newBag = {
+      ...bag,
+      collectionDate: new Date()
+    };
+    this.bloodBags.set(bag.id, newBag);
+    return newBag;
+  }
+
+  async getBloodBags(bankId?: number): Promise<BloodBag[]> {
+    const bags = Array.from(this.bloodBags.values());
+    if (bankId) {
+      return bags.filter(b => b.bankId === bankId);
+    }
+    return bags;
+  }
+
+  async getAvailableBloodBags(bloodType?: string): Promise<BloodBag[]> {
+    const bags = Array.from(this.bloodBags.values()).filter(b => b.status === 'Available');
+    if (bloodType) {
+      return bags.filter(b => b.bloodType === bloodType);
+    }
+    return bags;
+  }
+
+  async updateBloodBagStatus(id: string, status: string): Promise<void> {
+    const bag = this.bloodBags.get(id);
+    if (bag) {
+      bag.status = status as any;
+    }
+  }
+
+  async createHealthScreening(screening: any): Promise<HealthScreening> {
+    const newScreening = {
+      id: this.nextId++,
+      ...screening,
+      screeningDate: new Date()
+    };
+    this.healthScreenings.set(newScreening.id, newScreening);
+    return newScreening;
+  }
+
+  async getHealthScreenings(donorId?: string): Promise<HealthScreening[]> {
+    const screenings = Array.from(this.healthScreenings.values());
+    if (donorId) {
+      return screenings.filter(s => s.donorId === donorId);
+    }
+    return screenings;
+  }
+
+  async getHospitals(): Promise<Hospital[]> {
+    return this.hospitals;
+  }
+
+  async getHospitalById(id: number): Promise<Hospital | undefined> {
+    return this.hospitals.find(h => h.id === id);
+  }
+
+  async getBloodBanks(): Promise<BloodBank[]> {
+    return this.bloodBanks;
+  }
+
+  async getBloodBankById(id: number): Promise<BloodBank | undefined> {
+    return this.bloodBanks.find(b => b.id === id);
+  }
+
+  async getStaffDetails(userId: string): Promise<StaffDetails | undefined> {
+    return this.staffDetails.get(userId);
+  }
+
+  async createStaffDetails(details: any): Promise<StaffDetails> {
+    this.staffDetails.set(details.userId, details);
+    return details;
+  }
+
+  async getDonorProfile(userId: string): Promise<DonorProfile | undefined> {
+    return this.donorProfiles.get(userId);
+  }
+
+  async createDonorProfile(profile: any): Promise<DonorProfile> {
+    this.donorProfiles.set(profile.userId, profile);
+    return profile;
+  }
+
+  async getBloodInventoryStats(bankId?: number): Promise<Array<{ bloodType: string; count: number; status: string }>> {
+    const bags = Array.from(this.bloodBags.values());
+    const filteredBags = bankId ? bags.filter(b => b.bankId === bankId) : bags;
+    
+    const stats: { [key: string]: { [status: string]: number } } = {};
+    filteredBags.forEach(bag => {
+      if (!stats[bag.bloodType]) stats[bag.bloodType] = {};
+      if (!stats[bag.bloodType][bag.status]) stats[bag.bloodType][bag.status] = 0;
+      stats[bag.bloodType][bag.status]++;
+    });
+
+    const result: Array<{ bloodType: string; count: number; status: string }> = [];
+    Object.entries(stats).forEach(([bloodType, statuses]) => {
+      Object.entries(statuses).forEach(([status, count]) => {
+        result.push({ bloodType, count, status });
+      });
+    });
+
+    return result;
+  }
+
+  async getRequestStats(hospitalId?: number): Promise<{ pending: number; approved: number; total: number }> {
+    const requests = Array.from(this.bloodRequests.values());
+    const filteredRequests = hospitalId ? requests.filter(r => r.hospitalId === hospitalId) : requests;
+    
+    const pending = filteredRequests.filter(r => r.status === 'Pending').length;
+    const approved = filteredRequests.filter(r => r.status === 'Fulfilled').length;
+    const total = filteredRequests.length;
+
+    return { pending, approved, total };
+  }
+
+  async findSuitableBags(bloodType: string, count: number): Promise<BloodBag[]> {
+    const availableBags = await this.getAvailableBloodBags(bloodType);
+    return availableBags.slice(0, count);
+  }
+
+  async allocateBagToRequest(requestId: number, bagId: string): Promise<void> {
+    await this.updateBloodBagStatus(bagId, 'Reserved');
+  }
+
+  async confirmCrossmatch(requestId: number, bagId: string, successful: boolean): Promise<void> {
+    if (successful) {
+      await this.updateBloodBagStatus(bagId, 'Crossmatched');
+    } else {
+      await this.updateBloodBagStatus(bagId, 'Available');
+    }
+  }
+
+  async dispatchAllocatedBag(requestId: number, bagId: string): Promise<void> {
+    await this.updateBloodBagStatus(bagId, 'Issued');
+    await this.updateBloodRequestStatus(requestId, 'Completed');
+  }
+}
+
+// Use development storage if database is not available
+export const storage = process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL?.includes('postgresql://') 
+  ? new MemoryStorage() 
+  : new DatabaseStorage();

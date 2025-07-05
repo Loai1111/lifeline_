@@ -9,7 +9,8 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
 if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+  console.warn("Environment variable REPLIT_DOMAINS not provided. Using development default.");
+  process.env.REPLIT_DOMAINS = "localhost:5000,127.0.0.1:5000";
 }
 
 const getOidcConfig = memoize(
@@ -37,13 +38,24 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  
+  // For development mode, use memory store if database is not available
+  let sessionStore;
+  if (process.env.NODE_ENV === 'development' && !process.env.DATABASE_URL?.includes('postgresql://')) {
+    const MemoryStore = require('memorystore')(session);
+    sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+    console.warn("Using memory store for sessions in development mode");
+  } else {
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+  }
   
   console.log("[SESSION DEBUG] Creating session with config:", {
     nodeEnv: process.env.NODE_ENV,
@@ -109,6 +121,47 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Development mode bypass
+  if (process.env.NODE_ENV === 'development' && !process.env.REPL_ID) {
+    console.warn("Running in development mode without proper authentication setup");
+    console.warn("Using mock authentication for testing purposes");
+    
+    // Set up mock authentication for development
+    app.get('/auth/login', (req, res) => {
+      // Mock user for development
+      const mockUser = {
+        id: 'dev-user-1',
+        claims: {
+          sub: 'dev-user-1',
+          email: 'dev@example.com',
+          first_name: 'Dev',
+          last_name: 'User',
+          profile_image_url: null,
+          exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+        },
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+        expires_at: Math.floor(Date.now() / 1000) + 3600
+      };
+      
+      req.login(mockUser, (err) => {
+        if (err) {
+          console.error('Mock login error:', err);
+          return res.status(500).json({ error: 'Login failed' });
+        }
+        res.redirect('/');
+      });
+    });
+    
+    app.get('/auth/logout', (req, res) => {
+      req.logout(() => {
+        res.redirect('/');
+      });
+    });
+    
+    return;
+  }
 
   const config = await getOidcConfig();
 
