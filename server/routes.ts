@@ -94,28 +94,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Blood request routes
   app.post('/api/blood-requests', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('Blood request received:', req.body);
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      console.log('User found:', user);
       
       if (!user || user.role !== 'hospital_staff') {
+        console.log('Access denied - invalid user or role');
         return res.status(403).json({ message: "Access denied" });
       }
       
       const staffDetails = await storage.getStaffDetails(userId);
+      console.log('Staff details:', staffDetails);
       if (!staffDetails?.hospitalId) {
+        console.log('No hospital association found');
         return res.status(400).json({ message: "Hospital staff must be associated with a hospital" });
       }
       
-      const requestData = insertBloodRequestSchema.parse({
+      // Parse and validate the date
+      let requiredByDate;
+      try {
+        requiredByDate = new Date(req.body.requiredBy);
+        console.log('Parsed date:', requiredByDate);
+        if (isNaN(requiredByDate.getTime())) {
+          return res.status(400).json({ message: "Invalid required by date" });
+        }
+      } catch (dateError) {
+        console.log('Date parsing error:', dateError);
+        return res.status(400).json({ message: "Invalid required by date format" });
+      }
+      
+      const requestData = {
         ...req.body,
         hospitalId: staffDetails.hospitalId,
         staffId: userId,
-      });
+        requiredBy: requiredByDate,
+      };
+      console.log('Request data before validation:', requestData);
       
-      const bloodRequest = await storage.createBloodRequest(requestData);
+      const validatedData = insertBloodRequestSchema.parse(requestData);
+      console.log('Validated data:', validatedData);
+      
+      const bloodRequest = await storage.createBloodRequest(validatedData);
+      console.log('Blood request created:', bloodRequest);
       res.json(bloodRequest);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating blood request:", error);
+      if (error && error.name === 'ZodError') {
+        console.error("Zod validation errors:", error.issues);
+        return res.status(400).json({ 
+          message: "Validation error", 
+          details: error.issues || []
+        });
+      }
       res.status(500).json({ message: "Failed to create blood request" });
     }
   });

@@ -61,7 +61,7 @@ export default function BloodRequestForm() {
     mutationFn: async (data: RequestFormData) => {
       const requestData = {
         ...data,
-        requiredBy: new Date(data.requiredBy).toISOString(),
+        requiredBy: data.requiredBy,
       };
       return await apiRequest("POST", "/api/blood-requests", requestData);
     },
@@ -87,7 +87,21 @@ export default function BloodRequestForm() {
         }, 500);
         return;
       }
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit blood request";
+      
+      // Extract error message from the error
+      let errorMessage = "Failed to submit blood request";
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+      
+      // Handle specific error cases
+      if (errorMessage.includes('400:')) {
+        const match = errorMessage.match(/400:\s*(.+)/);
+        if (match) {
+          errorMessage = match[1];
+        }
+      }
+      
       toast({
         title: "Error",
         description: errorMessage,
