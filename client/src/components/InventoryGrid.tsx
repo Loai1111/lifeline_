@@ -14,22 +14,9 @@ interface InventoryGridProps {
 export default function InventoryGrid({ stats: propStats, showActions = false }: InventoryGridProps) {
   const { toast } = useToast();
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<Array<{ bloodType: string; count: number; status: string }>>({
     queryKey: ['/api/stats/inventory'],
     enabled: !propStats,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
   const displayStats = propStats || stats || [];

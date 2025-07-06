@@ -19,22 +19,9 @@ export default function RequestsTable({ requests: propRequests, showActions = fa
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: requests, isLoading } = useQuery({
+  const { data: requests, isLoading } = useQuery<BloodRequest[]>({
     queryKey: ['/api/blood-requests'],
     enabled: !propRequests,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-    },
   });
 
   const updateStatusMutation = useMutation({
@@ -57,7 +44,7 @@ export default function RequestsTable({ requests: propRequests, showActions = fa
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/login";
         }, 500);
         return;
       }

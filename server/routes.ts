@@ -1,21 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBloodRequestSchema, insertBloodBagSchema, insertHealthScreeningSchema } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Auth middleware
-  await setupAuth(app);
-
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -38,9 +35,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Role update route
-  app.post('/api/auth/role', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/role', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { role } = req.body;
       
       if (!['donor', 'hospital_staff', 'blood_bank_staff'].includes(role)) {
@@ -90,9 +89,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Blood request routes
-  app.post('/api/blood-requests', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'hospital_staff') {
@@ -155,9 +156,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/blood-requests', isAuthenticated, async (req: any, res) => {
+  app.get('/api/blood-requests', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -183,9 +186,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Blood request workflow routes
-  app.post('/api/blood-requests/:id/allocate', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/allocate', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -209,9 +214,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/crossmatch', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/crossmatch', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -243,9 +250,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/dispatch', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/dispatch', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -269,9 +278,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/blood-requests/:id/status', isAuthenticated, async (req: any, res) => {
+  app.put('/api/blood-requests/:id/status', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -294,9 +305,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Blood bag routes
-  app.post('/api/blood-bags', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-bags', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -321,9 +334,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/blood-bags', isAuthenticated, async (req: any, res) => {
+  app.get('/api/blood-bags', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -349,9 +364,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Health screening routes
-  app.post('/api/health-screenings', isAuthenticated, async (req: any, res) => {
+  app.post('/api/health-screenings', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -378,9 +395,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Workflow management routes with partial fulfillment
-  app.post('/api/blood-requests/:id/process', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/process', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -452,9 +471,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/crossmatch', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/crossmatch', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -476,9 +497,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/dispatch', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/dispatch', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -500,9 +523,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/reject', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/reject', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'bb-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'blood_bank_staff') {
@@ -525,9 +550,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/cancel', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/cancel', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'hospital_staff') {
@@ -547,9 +574,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests/:id/received', isAuthenticated, async (req: any, res) => {
+  app.post('/api/blood-requests/:id/received', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'hospital_staff') {
@@ -570,9 +599,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Statistics routes
-  app.get('/api/stats/inventory', isAuthenticated, async (req: any, res) => {
+  app.get('/api/stats/inventory', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -596,9 +627,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/stats/requests', isAuthenticated, async (req: any, res) => {
+  app.get('/api/stats/requests', async (req: any, res) => {
+    // MOCK USER
+    req.user = { id: 'hospital-staff-01' };
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -623,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reference data routes
-  app.get('/api/hospitals', isAuthenticated, async (req, res) => {
+  app.get('/api/hospitals', async (req, res) => {
     try {
       const hospitals = await storage.getHospitals();
       res.json(hospitals);
@@ -633,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/blood-banks', isAuthenticated, async (req, res) => {
+  app.get('/api/blood-banks', async (req, res) => {
     try {
       const bloodBanks = await storage.getBloodBanks();
       res.json(bloodBanks);
